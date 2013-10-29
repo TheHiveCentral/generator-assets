@@ -1100,8 +1100,8 @@
 
             // Code path for pixel-based output (SVG output will cause an early return)
             var scaleSettings = {
-                    width:  convertToPixels(component.width,  component.widthUnit),
-                    height: convertToPixels(component.height, component.heightUnit),
+                    width:  convertToPixels(document.bounds.width,  component.widthUnit),
+                    height: convertToPixels(document.bounds.height, component.heightUnit),
                     scaleX: component.scaleX || component.scale,
                     scaleY: component.scaleY || component.scale,
                     // Backwards compatibility
@@ -1109,7 +1109,7 @@
                 },
                 
                 // Mask
-                maskBounds = layerContext.mask && layerContext.mask.bounds,
+                maskBounds = document.bounds,
                 
                 // Static: User provided
                 staticBounds  = _generator.getDeepBounds(layerContext),
