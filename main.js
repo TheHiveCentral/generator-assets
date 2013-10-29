@@ -338,6 +338,12 @@
         var components = parseLayerName(layerName),
             errors = [];
 
+        components.forEach(function(component){
+            if (component.file) {
+                component.removeColor = !component.file.match(/shadow\.|^logo\.|-webLogo\./);
+            };
+        });
+
         var validFileComponents = components.filter(function (component) {
             if (!component.file) {
                 return false;
@@ -1056,6 +1062,17 @@
                         return svgDeferred.promise;
                     }
                     else {
+                        if(settings.removeColor) {
+                            var pixels = data.pixels;
+                            var len = pixels.length,
+                                channels = data.channelCount;
+                         
+                           for(var i=0;i<len;i+=channels){
+                                pixels[i+1] = 127;
+                                pixels[i+2] = 127;
+                                pixels[i+3] = 127;
+                            }
+                        }
                         return _generator.savePixmap(data, tmpPath, settings);
                     }
                 })
@@ -1139,7 +1156,8 @@
                         quality: component.quality,
                         format:  component.extension,
                         ppi:     documentContext.ppi,
-                        padding: padding
+                        padding: padding,
+                        removeColor: component.removeColor
                     });
                 },
                 function (err) {
