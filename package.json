@@ -1,9 +1,9 @@
 {
-  "name": "generator-assets",
+  "name": "orangelv-generator-assets",
   "version": "1.0.1",
   "description": "Asset generation plug-in for Photoshop Generator",
   "main": "main.js",
-  "generator-core-version": "~2",
+  "generator-core-version": "~1",
   "repository": {
     "type": "git",
     "url": "https://github.com/adobe-photoshop/generator-assets"
