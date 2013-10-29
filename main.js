@@ -933,9 +933,9 @@
             // The file name without its extension (e.g., "Untitled-1" or "hero-image")
             documentName = extension.length ? fileName.slice(0, -extension.length) : fileName,
             // For saved files, the directory the file was saved to. Otherwise, ~/Desktop
-            baseDirectory = isSaved ? dirname(path) : _fallbackBaseDirectory,
+            baseDirectory = isSaved ? resolve(dirname(path), "..", "..", "4_OUTPUT") : _fallbackBaseDirectory,
             // The directory to store generated assets in
-            assetGenerationDir = baseDirectory ? resolve(baseDirectory, documentName + "-assets") : null;
+            assetGenerationDir = baseDirectory ? resolve(baseDirectory, documentName.replace("_", "/")) : null;
 
         context.path               = path;
         context.isSaved            = isSaved;
