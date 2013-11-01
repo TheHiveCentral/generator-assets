@@ -27,6 +27,7 @@
     "use strict";
 
     var fs      = require("fs"),
+        _ = require('underscore'),
         resolve = require("path").resolve,
         Q       = require("q"),
         tmpName = Q.denodeify(require("tmp").tmpName),
@@ -267,6 +268,30 @@
         // File name checks
         if (component.file) {
             validation.validateFileName(component.file, reportError);
+            var filenameValidators = [
+                /^back.png/,
+                /^palm.png/,
+                /^powerBack.png/,
+                /^welting.png/,
+                /^simpleWeb.png/,
+                /^gloveLaces.png/,
+                /^embroideryLogo.png/,
+                /^shadow.png/,
+                /^logo.png/,
+
+                /^[A-Z0-9]+-webBase.png/,
+                /^[A-Z0-9]+-webLaces.png/,
+                /^[A-Z0-9]+-webDetail.png/,
+                /^[A-Z0-9]+-webLogo.png/,
+                /^[A-Z0-9]+-shadow.png/
+            ];
+            var isFilenameValid = _.find(filenameValidators, function(filenameValidator){
+                return filenameValidator.test(component.file);
+            })
+            if(!isFilenameValid){
+                component.invalidFilename = true;
+                // reportError("Filename is not valid");
+            }
         }
 
         // Scaling checks
@@ -1062,15 +1087,21 @@
                         return svgDeferred.promise;
                     }
                     else {
-                        if(settings.removeColor) {
+                        var color;
+                        if(settings.invalidFilename){
+                            color = [255,0,0];
+                        } else if(settings.removeColor) {
+                            color = [127,127,127];
+                        }
+                        if(color) {
                             var pixels = data.pixels;
                             var len = pixels.length,
                                 channels = data.channelCount;
                          
                            for(var i=0;i<len;i+=channels){
-                                pixels[i+1] = 127;
-                                pixels[i+2] = 127;
-                                pixels[i+3] = 127;
+                                pixels[i+1] = color[0];
+                                pixels[i+2] = color[1];
+                                pixels[i+3] = color[2];
                             }
                         }
                         return _generator.savePixmap(data, tmpPath, settings);
@@ -1157,7 +1188,8 @@
                         format:  component.extension,
                         ppi:     documentContext.ppi,
                         padding: padding,
-                        removeColor: component.removeColor
+                        removeColor: component.removeColor,
+                        invalidFilename: component.invalidFilename
                     });
                 },
                 function (err) {
