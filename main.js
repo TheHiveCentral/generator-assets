@@ -98,34 +98,6 @@
         return process.env[(process.platform === "win32") ? "USERPROFILE" : "HOME"];
     }
 
-    function deleteDirectoryRecursively(directory) {
-        try {
-            // Directory doesn't exist? We're done.
-            if (!fs.existsSync(directory)) {
-                return true;
-            }
-
-            // Delete all entries in the directory
-            var files = fs.readdirSync(directory);
-            files.forEach(function (file) {
-                var path = resolve(directory, file);
-                if (fs.statSync(path).isDirectory()) {
-                    deleteDirectoryRecursively(path);
-                } else {
-                    fs.unlinkSync(path);
-                }
-            });
-
-            // Delete the now empty directory
-            fs.rmdirSync(directory);
-
-            return true;
-        } catch (e) {
-            console.error("Error while trying to delete directory %j: %s", directory, e.stack);
-            return false;
-        }
-    }
-
     function deleteDirectoryIfEmpty(directory) {
         try {
             if (!fs.existsSync(directory)) {
@@ -1011,7 +983,9 @@
     // Start a new update
     function startLayerUpdate(changeContext) {
         function deleteLayerImages() {
-            deleteFilesRelatedToLayer(document.id, layer.id);
+            if (documentContext.assetGenerationEnabled) {
+                deleteFilesRelatedToLayer(document.id, layer.id);
+            }
         }
 
         function updateLayerName() {
@@ -1163,6 +1137,14 @@
 
                 pixmapSettings = _generator.getPixmapParams(scaleSettings, staticBounds, visibleBounds, paddedBounds);
 
+            if (_config && _config["use-smart-scaling"]) {
+                pixmapSettings.useSmartScaling = true;
+            }
+
+            if (_config && _config["include-ancestor-masks"]) {
+                pixmapSettings.includeAncestorMasks = true;
+            }
+
             // Get the pixmap
             console.log("Requesting pixmap for layer %d (%s) in document %d with settings %j",
                 layer.id, layerContext.name || layer.name,
@@ -1289,8 +1271,15 @@
         function createLayerImages() {
             var components = layerContext.validFileComponents;
 
+            var boundsOnlySettings = {
+                boundsOnly: true
+            };
+            if (_config && _config["include-ancestor-masks"]) {
+                boundsOnlySettings.includeAncestorMasks = true;
+            }
+
             // Get exact bounds
-            _generator.getPixmap(document.id, layer.id, { boundsOnly: true }).then(
+            _generator.getPixmap(document.id, layer.id, boundsOnlySettings).then(
                 function (pixmapInfo) {
                     var exactBounds = pixmapInfo.bounds;
                     if (exactBounds.right <= exactBounds.left || exactBounds.bottom <= exactBounds.top) {
