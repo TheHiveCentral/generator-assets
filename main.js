@@ -32,7 +32,8 @@
         Q       = require("q"),
         tmpName = Q.denodeify(require("tmp").tmpName),
         mkdirp  = require("mkdirp"),
-        mkdirpQ = Q.denodeify(mkdirp);
+        mkdirpQ = Q.denodeify(mkdirp),
+        getConfig = require("./get-config");
 
     // These objects hold booleans keyed on document ID that flag whether we're waiting
     // to receive complete document info. If we get image changed events while
@@ -76,6 +77,8 @@
         _documentIdsWithMenuClicks = {},
         _pendingUpdates = [],
         _runningUpdates = 0;
+
+    var externalConfig;
 
     function stringify(object) {
         try {
@@ -268,29 +271,11 @@
         // File name checks
         if (component.file) {
             validation.validateFileName(component.file, reportError);
-            var filenameValidators = [
-                /^back.png/,
-                /^palm.png/,
-                /^powerBack.png/,
-                /^welting.png/,
-                /^simpleWeb.png/,
-                /^gloveLaces.png/,
-                /^embroideryLogo.png/,
-                /^shadow.png/,
-                /^logo.png/,
-
-                /^[A-Z0-9]+-webBase.png/,
-                /^[A-Z0-9]+-webLaces.png/,
-                /^[A-Z0-9]+-webDetail.png/,
-                /^[A-Z0-9]+-webLogo.png/,
-                /^[A-Z0-9]+-shadow.png/
-            ];
-            var isFilenameValid = _.find(filenameValidators, function(filenameValidator){
-                return filenameValidator.test(component.file);
+            var isFilenameValid = _.any(externalConfig.filenameValidators, function(validator){
+                return validator.test(component.file);
             })
             if(!isFilenameValid){
                 component.invalidFilename = true;
-                // reportError("Filename is not valid");
             }
         }
 
@@ -365,7 +350,9 @@
 
         components.forEach(function(component){
             if (component.file) {
-                component.removeColor = !component.file.match(/shadow\.|^logo\.|-webLogo\./);
+                component.removeColor = !_.any(externalConfig.keepColorValidators, function(validator){
+                    return validator.test(component.file);
+                });
             };
         });
 
@@ -951,6 +938,8 @@
             basename = pathLib.basename,
             dirname  = pathLib.dirname;
 
+        externalConfig = getConfig(document.file);
+
         var context = _contextPerDocument[document.id],
             // The path to the document's file, or just its name (e.g., "Untitled-1" or "/foo/bar/hero-image.psd")
             path = document.file,
@@ -964,13 +953,14 @@
             // The file name without its extension (e.g., "Untitled-1" or "hero-image")
             documentName = extension.length ? fileName.slice(0, -extension.length) : fileName,
             // For saved files, the directory the file was saved to. Otherwise, ~/Desktop
-            baseDirectory = isSaved ? resolve(dirname(path), "..", "..", "4_OUTPUT") : _fallbackBaseDirectory,
+            baseDirectory = isSaved ? externalConfig.outputFolder : _fallbackBaseDirectory,
             // The directory to store generated assets in
             assetGenerationDir = baseDirectory ? resolve(baseDirectory, documentName.replace("_", "/")) : null;
 
         context.path               = path;
         context.isSaved            = isSaved;
         context.assetGenerationDir = assetGenerationDir;
+        context.externalConfig = externalConfig;
     }
 
     function runPendingUpdates() {
