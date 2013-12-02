@@ -7,9 +7,11 @@
         parents = require("parents");
 
     function getConfigFilePath(filePath){
+        filePath = path.normalize(filePath);
+        var isExternalDrive = filePath.indexOf('\\\\') == 0;
     	var parentFolders = parents(path.dirname(filePath));
         var configFiles = _.map(parentFolders, function(folderPath){
-        	return folderPath + path.sep + 'config.generator.json'
+        	return (isExternalDrive ? "\\\\" : "") + folderPath + path.sep + 'config.generator.json'
         });
         var configFilePath = _.find(configFiles, function(configFilePath){
         	return fs.existsSync(configFilePath);
