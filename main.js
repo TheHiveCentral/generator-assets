@@ -1135,7 +1135,7 @@
                     bottom: Math.max(exactBounds.bottom, maskBounds.bottom)
                 },
 
-                pixmapSettings = _generator.getPixmapParams(scaleSettings, staticBounds, visibleBounds, paddedBounds);
+                pixmapSettings = _generator.getPixmapParams(scaleSettings, staticBounds, visibleBounds, maskBounds);
 
             if (_config && _config["use-smart-scaling"]) {
                 pixmapSettings.useSmartScaling = true;
