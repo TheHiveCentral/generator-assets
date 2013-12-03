@@ -18,7 +18,7 @@
     "q": "0.9.6",
     "tmp": "~0.0.20",
     "underscore": "~1.5.2",
-    "parents": "0.0.1"
+    "parents": "0.0.2"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
